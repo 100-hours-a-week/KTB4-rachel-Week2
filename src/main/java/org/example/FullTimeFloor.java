@@ -13,7 +13,7 @@ public class FullTimeFloor extends Floor{
         System.out.println("👩🏻‍: " + super.job + " " + name + "이고, 저의 요리 숙련도는 " + super.serviceSkillLevel + "입니다.");
     }
 
-    // 매장 인력 관리: 요리 시간 재촉하기
+    // TODO: 매장 인력 관리: 요리 시간 재촉하기
 
 
 }

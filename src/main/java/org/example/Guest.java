@@ -24,6 +24,7 @@ public class Guest {
     }
 
     //메서드
+
     // 어느정도 누적 방문횟수가 늘어나면 VIP 손님으로 승격. 할인 5% 주기
     public void GetCupon(int visitedNum) {
         // 다른 결제 클래스의 메소드랑 어떻게 연결하지?

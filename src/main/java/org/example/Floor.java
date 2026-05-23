@@ -32,14 +32,11 @@ public class Floor extends Employee{
             }
         }
 
-        // MenuService menuService = new MenuService();
-        // menuService.TellMenuInfo(orderInfo); // 메뉴 설명
-        // TODO: 이렇게 맨날 menuService 객체를 생성하는게 맞음?
 
     }
 
     // 주문받기
-    public Map<String, Integer> takeOrder(Map<String, Integer> order) {
+    public void takeOrder(GuestOrder visitingGuest) {
 
         while (true) {
             System.out.println("주문하실 메뉴를 띄어쓰기와 함께 그대로 적어주세요.(주문을 완료하려면 '종료' 또는 엔터): ");
@@ -56,12 +53,12 @@ public class Floor extends Employee{
             int orderAmount = Integer.parseInt(sc.nextLine().trim());
 
             // 누적으로 주문하기
-            order.put(orderFood, order.getOrDefault(orderFood, 0) + orderAmount);
+            // order.put(orderFood, order.getOrDefault(orderFood, 0) + orderAmount); // 예전코드: order가 Map형태로 매개변수 받아왔음.
+            visitingGuest.addItem(orderFood, orderAmount); // 여기에는 최종으로만 넣어야 해.
             System.out.println("➕ 주문서에 담겼습니다.");
 
         }
 
-        return order;
     }
 
     // 서빙하기

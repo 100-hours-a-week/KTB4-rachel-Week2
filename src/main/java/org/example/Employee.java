@@ -1,5 +1,6 @@
 package org.example;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -37,30 +38,52 @@ public class Employee {
 
     // 결제하기
     // TODO: 손님이 먹은 음식을 Map<Integer(테이블명), List(또는 배열로 넣어서)> processPayment 함수 안에서 totalPrice를 구하는게 맞는지
-    public void processPayment(Map<String, Integer> orderPerGuest) {
+    public void processPayment(GuestOrder visitingGuest) {
         Scanner sc = new Scanner(System.in);
+        List<OrderItem> bill = visitingGuest.getValidItemsForPayment(); // 결제 할 최종 주문서
 
         // totalPrice 계산하기
         int totalPrice = 0;
-        for (Map.Entry<String, Integer> entry : orderPerGuest.entrySet()) {
-            int foodAmount  = 0;
-            if (entry.getValue() > 0) {
-                foodAmount = entry.getValue();
-                System.out.println(entry.getKey() + ": " + foodAmount + "개");
-                totalPrice += menu.getPrice(entry.getKey()) * foodAmount;
-            }
+        for (OrderItem order : bill) {
+
+            System.out.println(order.menuName + ": " + order.orderAmount + "개");
+            totalPrice += menu.getPrice(order.menuName) * order.orderAmount;
         }
 
-        System.out.println("- 총 결제 금액: " + totalPrice);
-        System.out.println("결제할 금액을 작성해주세요: ");
 
-        int paymentAmount = sc.nextInt();
-        int currentPrice = paymentAmount;
-        int charge = totalPrice - currentPrice;
+        // 결제 금액 받아오기 - 음수값 및 예외처리
+        System.out.println("- 총 결제 금액: " + totalPrice);
+
+        int paymentAmount;
+        int currentPrice;
+        int charge;
+
+
+        while (true)
+        {
+            try {
+                System.out.println("결제할 금액을 작성해주세요: "); //
+                paymentAmount = Integer.parseInt(sc.nextLine().trim());
+
+                if (paymentAmount < 0) {
+                    throw new IllegalArgumentException("❌ 결제 금액은 음수일 수 없습니다.");
+                }
+
+                currentPrice = paymentAmount;
+                charge = totalPrice - currentPrice;
+
+                break;
+
+            } catch (NumberFormatException e) {
+                System.out.println("❌ 숫자만 입력 가능합니다. 다시 입력해주세요.");
+            } catch (IllegalArgumentException e) {
+                // 우리가 위에서 throw new ...로 던진 음수 예외가 잡히는 곳
+                System.out.println(e.getMessage() + " 다시 입력해주세요.");
+            }
+
+        }
 
         System.out.println("- 현재 지불한 금액: " + currentPrice);
-
-
 
         while(true)
         {
