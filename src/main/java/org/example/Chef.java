@@ -11,10 +11,8 @@ public class Chef extends Employee {
     public String job = "Chef";
     public int cookingSkillLevel = 0;
 
-    CookMethod cookmethod; // TODO: 여기에 이렇게 선언해도 되나?
-    private final Lock saladCookLock = new ReentrantLock();
-    private final Lock pastaCookLock = new ReentrantLock();
-    private final Lock pizzaCookLock = new ReentrantLock();
+    CookMethod cookmethod; // TODO: 여기에 이렇게 선언해도 되나요?
+
 
 
     // 셍성자
