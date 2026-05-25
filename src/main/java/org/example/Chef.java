@@ -127,6 +127,7 @@ public class Chef extends Employee {
 
                 pizzaThread.start();
 
+                // 피자 스레드 join()
 //                try {
 //                    pizzaThread.join(); // pizzaThread 끝날 때까지 main 스레드가 여기서 대기
 //
@@ -134,6 +135,8 @@ public class Chef extends Employee {
 //                    Thread.currentThread().interrupt();
 //                }
             }
+
+
 
         }
 

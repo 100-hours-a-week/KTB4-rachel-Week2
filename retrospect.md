@@ -9,7 +9,120 @@ synchronized는 클래스 또는 메서드마다 객체 기준으로 lock을 걸
 - pastaCookLock
 - pizzaCookLock
 ## 3. 그치만, join()을 if-else문 때문에 적절하게 사용을 못하고 있다.
-주문 받은 내역을 for문을 돌아가며 스레드를 실행시키는 거기에 start() 하고 join()을 해도 ...
+주문 받은 내역을 for문을 돌아가며 스레드를 실행시키는 거라 join() 메서드를 사용하여 메인 스레드의 실행을 제어하기가 애매한 상황이다.
+
+<구현하고 싶은 시나리오>
+- 주문을 받고, 조리를 다음 Chef 클래스의 processCook() 메서드를 실행시킨다. 
+- 그리고 '샐러드', '파스타', '피자' 메뉴가 주문이 되어 있으면 각각의 파트 요리사들이 동시에 조리한다. 
+- 모든 메뉴가 준비돼야 서버가 서빙한다.(Floor class의 serve() 메서드)
+
+그런데 현재 조리 기능을 담당하는 prcoesCook()에서 반복문을 돌면서 메뉴를 확인하기 때문에 다음과 같은 문제에 직면하였다.
+
+문제 1) join 메서드를 if-else 구문마다 넣어줄때: '샐러드', '파스타', '피자' 조리가 비동기 방식으로 조리 되지않는다. 스레드를 만든 게 무의미함.
+```
+// 요리 제어하는 메서드: '샐러드', '파스타', '피자' 파트별로 주방사가 있음. 비동기 방식으로 처리 가능함.
+    public void processCook(GuestOrder visitingGuest) {
+        List<OrderItem> allItems = visitingGuest.getOrder();
+        System.out.println("Chef에게 들어온 매뉴 리스트: " + allItems);
+
+        // 메뉴 조리 성공 여부 boolean 변수
+        // boolean IsAvailable 변수를 하나로 퉁치면 하나의 스레드가 먼저 끝나면 의도치않게 IsAvailable 값이 변경 될 것 같아, lock을 건 메소드마다 boolean 변수를 만들었습니다.
+
+
+        // 각 메서드는 lock 객체 구현
+        for (OrderItem item : allItems) {
+            String menuName = item.menuName;
+            int cookAmount = item.orderAmount;
+
+            System.out.println("🔥 [" + menuName + " 조리 들어갔습니다.]");
+
+            if (menuName.contains("샐러드")) {
+                cookmethod = new saladCook();
+                
+                Thread saladThread = new Thread(() -> {
+                    boolean saladIsAvailable = cookmethod.cook(cookAmount);
+                    if(!saladIsAvailable) {
+                        System.out.println("[샐러드 재료가 부족하여, 샐러드 메뉴는 나오지 못하였습니다.]");
+                        item.isAvailable = false;
+                    }
+                });
+
+                saladThread.start();
+                // 샐러드 스레드 join()
+//                try {
+//                    saladThread.join(); // saladThread가 끝날 때까지 main 스레드가 여기서 대기
+//
+//                } catch (InterruptedException e) {
+//                    Thread.currentThread().interrupt();
+//                }
+
+            } else if (menuName.contains("파스타")) {
+                cookmethod = new pastaCook();
+                
+                Thread pastaThread = new Thread(() -> {
+                    boolean pastaIsAvailable = cookmethod.cook(cookAmount);
+                    if(!pastaIsAvailable){
+                        System.out.println("[파스타 재료가 부족하여, 파스타 메뉴는 나오지 못하였습니다.]");
+                        item.isAvailable = false;
+                    }
+                });
+
+                pastaThread.start();
+                // 파스타 스레드 join()
+//                try {
+//                    pastaThread.join(); // pastaThread 끝날 때까지 main 스레드가 여기서 대기
+//
+//                } catch (InterruptedException e) {
+//                    Thread.currentThread().interrupt();
+//                }
+
+            } else {
+                cookmethod = new pizzaCook();
+                
+                Thread pizzaThread = new Thread(() -> {
+                    boolean pizzaIsAvailable = cookmethod.cook(cookAmount);
+                    if(!pizzaIsAvailable) {
+                        System.out.println("[피자 재료가 부족하여, 피자 메뉴는 나오지 못하였습니다.]");
+                        item.isAvailable = false;
+                    }
+                });
+
+                pizzaThread.start();
+                
+                // 피자 스레드 join() 
+//                try {
+//                    pizzaThread.join(); // pizzaThread 끝날 때까지 main 스레드가 여기서 대기
+//
+//                } catch (InterruptedException e) {
+//                    Thread.currentThread().interrupt();
+//                }
+            }
+
+           
+
+        }
+
+    }
+            
+
+```
+
+문제 2) if-else문이 끝나고 마지막에 한꺼변 join()할 때: if-else 안에서 선언한 스레드이기 때문에 if-else 밖에서 join()을 실행할 수가 없다. '샐러드', '파스타', '피자'가 주문이 안들어올 수도 있고, 들어올 수도 있고 예측이 불가하다. 그래서 예측이 불가한 상황이라 if-else를 넣고 각각 Thread를 생성했었다. 
+
+```
+
+// if-else 문 끝나고 밖에
+
+
+             try {
+                saladThread.join();
+                pastaThread.join();
+                pizzaThread.join();
+            } catch (catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+
+```
 
 ## 4. 주문서(bill)를 기존의 Map 컬렉션에서 클래스의 객체로
 기존에는 Main 메서드와 서버(Floor), 요리사(Chef)가 손님이 주문한 내역을 Map<String, Integer> 타입으로 매개변수를 통해 전달하였다. 처음에 주문한 내역이 딕셔너리처럼 저장되고 중간에 수정없이 그대로 결제할때 빌지로도 사용되었다.
